@@ -20,8 +20,9 @@ Ported from [duck-gen (Go)](https://github.com/chowder/duck-gen).
    ```bash
    python duck_gen.py
    ```
-   Enter your duck.com email address.
 
-3. Enter the one time passphrase from your email.
+3. Enter your duck.com email address.
 
-4. The new alias will be shown in the console and automatically copied to your clipboard.
+4. Enter the one time passphrase from your email.
+
+5. The new alias will be shown in the console and automatically copied to your clipboard.
