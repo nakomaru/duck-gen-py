@@ -13,7 +13,7 @@ def ensure_venv():
         return
 
     script_dir = Path(__file__).parent.resolve()
-    venv_dir = script_dir / ".venv"
+    venv_dir = script_dir / f".venv_{Path(__file__).stem}"
     
     # Platform-specific venv python executable
     if os.name == "nt":
