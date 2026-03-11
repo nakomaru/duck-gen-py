@@ -11,15 +11,11 @@ Ported from [duck-gen (Go)](https://github.com/chowder/duck-gen).
 
 ## Usage
 
-1. **Install:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+Just run the script. It will automatically create a virtual environment and install the required dependencies (`requests` and `pyperclip`) on the first run.
 
-2. **Run:**
-   ```bash
-   python duck_gen.py
-   ```
+```bash
+python duck_gen.py
+```
 
 3. Enter your duck.com email address.
 
