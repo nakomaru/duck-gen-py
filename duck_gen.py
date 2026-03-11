@@ -1,10 +1,66 @@
 import os
 import sys
 import json
-import requests
-import pyperclip
+import subprocess
+import venv
 from pathlib import Path
 from typing import Optional
+
+def ensure_venv():
+    """Ensure the script runs in a virtual environment with required dependencies."""
+    # Check if we are already in a virtual environment
+    if sys.prefix != sys.base_prefix:
+        return
+
+    script_dir = Path(__file__).parent.resolve()
+    venv_dir = script_dir / ".venv"
+    
+    # Platform-specific venv python executable
+    if os.name == "nt":
+        venv_python = venv_dir / "Scripts" / "python.exe"
+    else:
+        venv_python = venv_dir / "bin" / "python"
+
+    if not venv_python.exists():
+        print(f"Creating virtual environment in {venv_dir}...")
+        try:
+            venv.create(venv_dir, with_pip=True)
+        except Exception as e:
+            print(f"Failed to create virtual environment: {e}")
+            sys.exit(1)
+    
+    # Check if requirements are satisfied
+    try:
+        subprocess.check_call([str(venv_python), "-c", "import requests, pyperclip"], 
+                             stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError:
+        print("Installing dependencies (requests, pyperclip)...")
+        try:
+            subprocess.check_call([str(venv_python), "-m", "pip", "install", "requests", "pyperclip"], 
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to install dependencies: {e}")
+            sys.exit(1)
+
+    # Relaunch script using venv python
+    try:
+        os.execv(str(venv_python), [str(venv_python), str(Path(__file__).resolve())] + sys.argv[1:])
+    except AttributeError:
+        # os.execv is not always available or behaves differently on some platforms (like Windows in some contexts)
+        # fallback to subprocess.run if execv fails or is unavailable
+        sys.exit(subprocess.call([str(venv_python), str(Path(__file__).resolve())] + sys.argv[1:]))
+
+# Run bootstrap before anything else
+ensure_venv()
+
+# Now we can safely import non-standard libraries
+try:
+    import requests
+    import pyperclip
+except ImportError:
+    # This might happen if the bootstrap failed to install them but somehow continued
+    print("Error: Required dependencies (requests, pyperclip) not found in virtual environment.")
+    sys.exit(1)
 
 # Constants
 API_BASE = "https://quack.duckduckgo.com/api"
@@ -26,7 +82,7 @@ def get_client() -> requests.Session:
 
 def get_token_file() -> Path:
     # Stored in the same directory as the script
-    return Path(__file__).parent / TOKEN_FILE_NAME
+    return Path(__file__).parent.resolve() / TOKEN_FILE_NAME
 
 def read_token() -> Optional[str]:
     token_file = get_token_file()
